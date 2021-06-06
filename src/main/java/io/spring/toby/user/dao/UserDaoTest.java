@@ -8,8 +8,8 @@ public class UserDaoTest {
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
         ConnectionMaker connectionMaker = new MySQLConnectionMaker();
 
-        UserDao dao = new UserDao(connectionMaker);
-
+//        UserDao dao = new UserDao(connectionMaker);
+        UserDao dao = new DaoFactory().userDao();
         User user = new User();
         user.setId("chap1.3");
         user.setName("chap1.3 분리");

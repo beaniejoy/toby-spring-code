@@ -2,7 +2,7 @@
 
 오브젝트 & 의존관계
 
-## Connection 분리
+## 1.2 DAO 분리
 
 ### 템플릿 메소드 패턴
 슈퍼클래스(UserDao)에서 기본적인 로직 흐름 만들고  
@@ -13,7 +13,14 @@
 서브클래스에서 구체적인 오브젝트 생성 방법을 결정하게 하는 것  
 (getConnection을 통해 Connection 클래스의 오브젝트를 생성하는데 서브클래스에서 어떠한 Connection 객체를 생성할 것인지를 결정)
 
-## 인터페이스 분리
+- UserDao (abstract class)
+  - add() > 템플릿 메소드
+  - get() > 템플릿 메소드
+  - abstract getConnection() > 팩토리 메소드
+- NUserDao: getConnection()
+- DUserDao: getConnection()
+
+## 1.3 DAO 확장
 
 ### OCP (Open-Closed Principle)
 개방 폐쇄 원칙  
