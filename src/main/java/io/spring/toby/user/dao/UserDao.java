@@ -4,10 +4,15 @@ import io.spring.toby.user.domain.User;
 
 import java.sql.*;
 
-public abstract class UserDao {
+public class UserDao {
+    private ConnectionMaker connectionMaker;
+
+    public UserDao(ConnectionMaker connectionMaker) {
+        this.connectionMaker = connectionMaker;
+    }
 
     public void add(User user) throws ClassNotFoundException, SQLException {
-        Connection c = getConnection();
+        Connection c = this.connectionMaker.makeConnection();
 
         PreparedStatement ps = c.prepareStatement(
                 "insert into users(id, name, password) values(?,?,?)"
@@ -24,7 +29,7 @@ public abstract class UserDao {
     }
 
     public User get(String id) throws ClassNotFoundException, SQLException {
-        Connection c = getConnection();
+        Connection c = this.connectionMaker.makeConnection();
 
         PreparedStatement ps = c.prepareStatement(
                 "select * from users where id = ?"
@@ -43,27 +48,5 @@ public abstract class UserDao {
         c.close();
 
         return user;
-    }
-
-    // Connection 연결 분리
-    public abstract Connection getConnection() throws ClassNotFoundException, SQLException;
-
-    public static void main(String[] args) throws SQLException, ClassNotFoundException {
-        UserDao dao = new MySQLUserDao();
-
-        User user = new User();
-        user.setId("joy");
-        user.setName("hello");
-        user.setPassword("good");
-
-        dao.add(user);
-
-        System.out.println(user.getId() + " 등록 성공");
-
-        User user2 = dao.get(user.getId());
-        System.out.println(user2.getName());
-        System.out.println(user2.getPassword());
-
-        System.out.println(user2.getId() + " 조회 성공");
     }
 }
