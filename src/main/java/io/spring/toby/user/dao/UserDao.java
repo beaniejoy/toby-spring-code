@@ -4,14 +4,10 @@ import io.spring.toby.user.domain.User;
 
 import java.sql.*;
 
-public class UserDao {
+public abstract class UserDao {
 
     public void add(User user) throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection c = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/toby",
-                "root",
-                "springtest");
+        Connection c = getConnection();
 
         PreparedStatement ps = c.prepareStatement(
                 "insert into users(id, name, password) values(?,?,?)"
@@ -28,11 +24,7 @@ public class UserDao {
     }
 
     public User get(String id) throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection c = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/toby",
-                "root",
-                "springtest");
+        Connection c = getConnection();
 
         PreparedStatement ps = c.prepareStatement(
                 "select * from users where id = ?"
@@ -53,13 +45,16 @@ public class UserDao {
         return user;
     }
 
+    // Connection 연결 분리
+    public abstract Connection getConnection() throws ClassNotFoundException, SQLException;
+
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
-        UserDao dao = new UserDao();
+        UserDao dao = new MySQLUserDao();
 
         User user = new User();
-        user.setId("beaniejoy");
-        user.setName("이한빈");
-        user.setPassword("married");
+        user.setId("joy");
+        user.setName("hello");
+        user.setPassword("good");
 
         dao.add(user);
 
