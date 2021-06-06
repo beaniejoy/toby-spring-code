@@ -1,19 +1,24 @@
 package io.spring.toby.user.dao;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
 public class DaoFactory {
+    @Bean
     public UserDao userDao() {
-        return new UserDao(getConnectionMaker());
+        UserDao userDao = new UserDao();
+        userDao.setConnectionMaker(connectionMaker());
+        return userDao;
     }
 
-    public AccountDao accountDao() {
-        return new AccountDao(getConnectionMaker());
+    @Bean
+    public ConnectionMaker connectionMaker() {
+        return new CountingConnectionMaker(realConnectionMaker());
     }
 
-    public MessageDao messageDao() {
-        return new MessageDao(getConnectionMaker());
-    }
-
-    private ConnectionMaker getConnectionMaker() {
+    @Bean
+    public ConnectionMaker realConnectionMaker() {
         return new MySQLConnectionMaker();
     }
 }

@@ -20,6 +20,13 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.25</version>
         </dependency>
-    </dependencies>
 
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-context -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.2.15.RELEASE</version>
+        </dependency>
+
+    </dependencies>
 </project>
