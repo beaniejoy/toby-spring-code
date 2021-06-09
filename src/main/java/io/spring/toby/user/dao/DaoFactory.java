@@ -11,7 +11,7 @@ import java.sql.SQLException;
 
 @Configuration
 public class DaoFactory {
-    @Bean
+    /*@Bean
     public UserDao userDao() {
         UserDao userDao = new UserDao();
         userDao.setDatasource(dataSource());
@@ -28,15 +28,6 @@ public class DaoFactory {
         dataSource.setPassword("springtest");
 
         return dataSource;
-    }
+    }*/
 
-//    @Bean
-//    public ConnectionMaker connectionMaker() {
-//        return new CountingConnectionMaker(realConnectionMaker());
-//    }
-
-//    @Bean
-//    public ConnectionMaker realConnectionMaker() {
-//        return new MySQLConnectionMaker();
-//    }
 }

@@ -3,31 +3,46 @@ package io.spring.toby.user.dao;
 import io.spring.toby.user.domain.User;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = "/test-applicationContext.xml")
 public class UserDaoTest {
 
+//    @Autowired
+//    private ApplicationContext context;
+
+    @Autowired
     private UserDao dao;
+
     private User user1;
     private User user2;
     private User user3;
 
-
     @Before
     public void setUp() {
-        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
-        dao = context.getBean("userDao", UserDao.class);
+        DataSource dataSource = new SingleConnectionDataSource(
+                "jdbc:mysql://localhost:3306/toby",
+                "root",
+                "springtest",
+                true
+        );
 
         user1 = new User("beanie", "비니", "spring1");
         user2 = new User("joy", "조이", "spring2");
         user3 = new User("marry", "결혼", "spring3");
+
     }
 
     @Test
