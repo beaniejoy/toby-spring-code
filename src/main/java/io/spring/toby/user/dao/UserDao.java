@@ -9,7 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class UserDao {
+public abstract class UserDao {
 
     private DataSource dataSource;
 
@@ -20,9 +20,7 @@ public class UserDao {
     public void add(User user) throws SQLException {
         Connection c = dataSource.getConnection();
 
-        PreparedStatement ps = c.prepareStatement(
-                "insert into users(id, name, password) values(?,?,?)"
-        );
+        PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values(?,?,?)");
 
         ps.setString(1, user.getId());
         ps.setString(2, user.getName());
@@ -98,11 +96,20 @@ public class UserDao {
     }
 
     public void deleteAll() throws SQLException {
+        // strategy 선택
+        StatementStrategy st = new DeleteAllStatement();
+        jdbcContextWithStatementStrategy(st); // 전략 DI
+    }
+
+    // context
+    public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws SQLException {
         Connection c = null;
         PreparedStatement ps = null;
         try {
             c = dataSource.getConnection();
-            ps = c.prepareStatement("delete from users");
+
+            ps = stmt.makePreparedStatement(c);
+
             ps.executeUpdate();
         } catch (SQLException e) {
             throw e;
@@ -122,6 +129,5 @@ public class UserDao {
                 }
             }
         }
-
     }
 }
