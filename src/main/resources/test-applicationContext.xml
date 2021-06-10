@@ -4,8 +4,12 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="userDao" class="io.spring.toby.user.dao.UserDao">
-        <!--<property name="datasource" ref="mySQLConnectionMaker"/>-->
-        <property name="datasource" ref="dataSource"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="jdbcContext" ref="jdbcContext"/>
+    </bean>
+
+    <bean id="jdbcContext" class="io.spring.toby.user.dao.JdbcContext">
+        <property name="dataSource" ref="dataSource"/>
     </bean>
 
     <bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
