@@ -24,3 +24,33 @@
   - 내부 클래스의 코드에서 외부의 메소드 지역변수에 직접 접근가능  
     (add에서 insert할 User 오브젝트를 생성자로 만들지 않고 직접 메소드의 로컬 변수에서 가져옴)
     
+## 3.5 템플릿과 콜백(p242)
+```
+io.spring.toby.learningtest.template
+
+- Calculator
+  - 템플릿 메소드
+  - 기능 메소드: 계산하는 callback 인터페이스를 구현
+- LineCallback
+  - 달라지는 코드를 구현하도록 지시하는 인터페이스
+- CalcSumTest
+  - 해당 Calculator의 기능들 테스트
+```
+
+- **템플릿**: 어떤 목적을 위해 미리 만들어둔 모양이 있는 틀(context)
+- **콜백**: 실행을 목적으로 다른 오브젝트 메소드에 전달되는 오브젝트
+  - `functional object`라고도 한다.
+  - 메소드 자체를 템플릿 안에 전달하기 위해 메소드가 담긴 오브젝트를 전달
+  - 콜백은 하나의 메소드를 가진 인터페이스를 구현한 익명 내부 클래스로 생성
+  
+```java
+public void setUp() {
+    getClass().getResource("numbers.txt").getPath();
+}
+```
+`target/test-classes/io/spring/toby/learningtest/template/numbers.txt`  
+컴파일된 패키지 경로 안에 위치해야 한다.
+
+- `LineCallback` 인터페이스를 통해 달라지는 부분만 구현
+- 나머지는 Calculator 내부에 템플릿 메소드에서 구현한 callback을 받아서 처리
+- Generic을 적용하면 더 범용적으로 사용가능(`LineCallback<T>`)
