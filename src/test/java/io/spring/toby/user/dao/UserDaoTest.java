@@ -20,9 +20,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @ContextConfiguration(locations = "/test-applicationContext.xml")
 public class UserDaoTest {
 
-//    @Autowired
-//    private ApplicationContext context;
-
     @Autowired
     private UserDao dao;
 
@@ -32,17 +29,9 @@ public class UserDaoTest {
 
     @Before
     public void setUp() {
-        DataSource dataSource = new SingleConnectionDataSource(
-                "jdbc:mysql://localhost:3306/toby",
-                "root",
-                "springtest",
-                true
-        );
-
         user1 = new User("beanie", "비니", "spring1");
         user2 = new User("joy", "조이", "spring2");
         user3 = new User("marry", "결혼", "spring3");
-
     }
 
     @Test

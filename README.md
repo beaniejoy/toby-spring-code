@@ -1,6 +1,6 @@
-# Toby's Spring 3.1
+# chap 3 Template
 
-- branches
-    - chapter1 오브젝트, 의존관계
-    - chapter2 테스트
-    - chapter3 템플릿
+> OCP: 개방 폐쇄 원칙  
+> - 외부 모듈의 변화에는 개방되어 있고 모듈의 변화로 인한 내부적인 코드의 변화에는 닫혀있는 원칙
+> - 객체지향 프로그래밍 원칙 중 하나
+
