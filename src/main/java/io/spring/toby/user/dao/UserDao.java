@@ -9,7 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public abstract class UserDao {
+public class UserDao {
 
     private DataSource dataSource;
 
@@ -17,19 +17,20 @@ public abstract class UserDao {
         this.dataSource = dataSource;
     }
 
-    public void add(User user) throws SQLException {
-        Connection c = dataSource.getConnection();
+    public void add(final User user) throws SQLException {
+        // 익명 내부클래스 적용
+        jdbcContextWithStatementStrategy(new StatementStrategy() {
+            @Override
+            public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+                PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values(?,?,?)");
 
-        PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values(?,?,?)");
+                ps.setString(1, user.getId());
+                ps.setString(2, user.getName());
+                ps.setString(3, user.getPassword());
 
-        ps.setString(1, user.getId());
-        ps.setString(2, user.getName());
-        ps.setString(3, user.getPassword());
-
-        ps.executeUpdate();
-
-        ps.close();
-        c.close();
+                return ps;
+            }
+        });
     }
 
     public User get(String id) throws SQLException {
@@ -96,9 +97,12 @@ public abstract class UserDao {
     }
 
     public void deleteAll() throws SQLException {
-        // strategy 선택
-        StatementStrategy st = new DeleteAllStatement();
-        jdbcContextWithStatementStrategy(st); // 전략 DI
+        jdbcContextWithStatementStrategy(new StatementStrategy() {
+            @Override
+            public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+                return c.prepareStatement("delete from users");
+            }
+        });
     }
 
     // context
