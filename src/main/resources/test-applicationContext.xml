@@ -6,14 +6,19 @@
     <bean id="userService" class="io.spring.toby.user.service.UserService">
         <property name="userDao" ref="userDao"/>
         <property name="userLevelUpgradePolicy" ref="userLevelUpgradePolicy"/>
-        <property name="dataSource" ref="dataSource"/>
+        <property name="transactionManager" ref="transactionManager"/>
     </bean>
 
     <bean id="userDao" class="io.spring.toby.user.dao.UserDaoJdbc">
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
-    <bean id="jdbcContext" class="io.spring.toby.user.dao.JdbcContext">
+    <bean id="userLevelUpgradePolicy" class="io.spring.toby.user.service.UserLevelUpgradePolicyImpl">
+        <property name="userDao" ref="userDao"/>
+    </bean>
+
+    <!--  특정 기술의 트랜잭션 관리 클래스를 적용할 때 여기를 수정하면 됨  -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
@@ -23,9 +28,4 @@
         <property name="username" value="root"/>
         <property name="password" value="springtest"/>
     </bean>
-
-    <bean id="userLevelUpgradePolicy" class="io.spring.toby.user.service.UserLevelUpgradePolicyImpl">
-        <property name="userDao" ref="userDao"/>
-    </bean>
-
 </beans>

@@ -33,7 +33,7 @@
 - JdbcTemplate을 더 이상 활용 불가  
   `try - catch`가 UserService에서도 발생
 - UserService에서도 Connection을 만들어서 전달해야 함  
-  비즈니스 로직을 담고 있는 Service 계층에서 데이터 처리관련 역할을 같이 담는 것은 SRP에 위반
+  비즈니스 로직을 담고 있는 Service 계층에서 연결 생성 역할을 같이 담는 것은 SRP에 위반
 - UserDao는 더 이상 데이터 엑세스 기술에 독립적일 수 없음
   - Connection을 UserDao 인터페이스 메소드에 각각 적용해야 함
   - 이는 테스트 코드에도 영향을 미친다. (각 메소드에 Connection을 넣어야 하기에)
@@ -75,7 +75,12 @@ try {
   - 애플리케이션에서는 JDBC, JMS 같은 기존 방식의 API 적용
   - 트랜잭션 부문에 있어서는 JTA를 통해 트랜잭션 매니저에 위임
   - `Resource Manager`, `XA 프로토콜` 통해 연결
+- 문제점
+  - hibernate의 트랜잭션 관리 코드와 다르다. (독자적인 관리 API 사용)
+  - Service 레이어에서 기술에 따라 로직이 바뀌어야 한다. (JTA 적용 유무에 따라)
   
-````java
-  
-````
+### 트랜잭션의 추상화
+- 스프링에서 제공하는 트랜잭션 추상화 기술 적용(`PlatformTransactionManager`)
+- JDBC, JTA, Hibernate, JPA, JMS 등 각각의 트랜잭션 처리 코드의 추상화를 도입
+- `PlatformTransactionManager`를 구현한 여러 기술들의 Manager 오브젝트 적용 가능
+- Manager 계층에서 각 기술에 해당하는 Transaction을 관리
