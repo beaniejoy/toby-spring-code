@@ -29,7 +29,7 @@ public class UserDao {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public void add(final User user) throws SQLException {
+    public void add(final User user) {
         // 익명 내부클래스 적용
         this.jdbcTemplate.update(
                 "insert into users(id, name, password) values(?,?,?)",
@@ -38,7 +38,7 @@ public class UserDao {
                 user.getPassword());
     }
 
-    public User get(String id) throws SQLException {
+    public User get(String id) {
         return this.jdbcTemplate.queryForObject("select * from users where id = ?", userMapper, id);
     }
 
@@ -46,11 +46,11 @@ public class UserDao {
         return this.jdbcTemplate.query("select * from users order by id", userMapper);
     }
 
-    public int getCount() throws SQLException {
+    public int getCount() {
         return this.jdbcTemplate.queryForObject("select count(*) from users", Integer.class);
     }
 
-    public void deleteAll() throws SQLException {
+    public void deleteAll() {
         this.jdbcTemplate.update("delete from users");
     }
 
