@@ -29,3 +29,14 @@
 - 예외 전환 방식을 사용
 - `SQLExcpetion` > `DataAccessException` 전환(런타임 예외로 전환)
 - 스프링 API 메소드에 정의되어 있는 대부분의 예외는 런타임 예외(예외 처리를 강제하지 않는다.)
+
+## 4.2 예외 전환
+```java
+// UserDaoTest.java
+assertThat(set.translate(null, null, sqlEx),
+        is(DuplicateKeyException.class));
+
+assertThat(set.translate(null, null, sqlEx),
+        instanceOf(DuplicateKeyException.class));
+```
+스프링의 예외 전환 API를 직접 적용해서 `DuplicateKeyException`이 만들어지는지 Test
