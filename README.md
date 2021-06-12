@@ -41,7 +41,7 @@ io.spring.toby.learningtest.template
 - **콜백**: 실행을 목적으로 다른 오브젝트 메소드에 전달되는 오브젝트
   - `functional object`라고도 한다.
   - 메소드 자체를 템플릿 안에 전달하기 위해 메소드가 담긴 오브젝트를 전달
-  - 콜백은 하나의 메소드를 가진 인터페이스를 구현한 익명 내부 클래스로 생성
+  - 콜백은 하나의 메소드를 가진 인터페이스를 구현한 `익명 내부 클래스`로 생성
   
 ```java
 public void setUp() {
@@ -54,3 +54,37 @@ public void setUp() {
 - `LineCallback` 인터페이스를 통해 달라지는 부분만 구현
 - 나머지는 Calculator 내부에 템플릿 메소드에서 구현한 callback을 받아서 처리
 - Generic을 적용하면 더 범용적으로 사용가능(`LineCallback<T>`)
+
+## 3.6 스프링의 JdbcTemplate
+스프링에서 제공하는 템플릿/콜백 기술 중 JDBC를 사용할 수 있게 한 기술  
+
+```java
+public int getCount() throws SQLException {
+    return this.jdbcTemplate.queryForObject("select count(*) from users", Integer.class);
+}
+@Deprecated
+queryForInt("select count(*) from users")
+```
+
+```java
+return this.jdbcTemplate.queryForObject(
+        "select * from users where id = ?",
+        new RowMapper<User>() {
+            @Override
+            public User mapRow(ResultSet rs, int i) throws SQLException {
+                User user = new User();
+                user.setId(rs.getString("id"));
+                user.setName(rs.getString("name"));
+                user.setPassword(rs.getString("password"));
+                return user;
+            }
+        },
+        id
+);
+```
+```java
+@Deprecated
+queryForObject(String sql, @Nullable Object[] args, RowMapper<T> rowMapper)
+
+queryForObject(String sql, RowMapper<T> rowMapper, @Nullable Object... args)
+```
