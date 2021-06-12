@@ -1,5 +1,6 @@
 package io.spring.toby.user.dao;
 
+import io.spring.toby.user.domain.Level;
 import io.spring.toby.user.domain.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -21,6 +22,9 @@ public class UserDaoJdbc implements UserDao{
                     user.setId(rs.getString("id"));
                     user.setName(rs.getString("name"));
                     user.setPassword(rs.getString("password"));
+                    user.setLevel(Level.valueOf(rs.getInt("level")));
+                    user.setLogin(rs.getInt("login"));
+                    user.setRecommend(rs.getInt("recommend"));
                     return user;
                 }
             };
@@ -33,11 +37,15 @@ public class UserDaoJdbc implements UserDao{
     public void add(final User user) {
         // 익명 내부클래스 적용
         this.jdbcTemplate.update(
-                "insert into users(id, name, password) values(?,?,?)",
+                "insert into users(id, name, password, level, login, recommend) values(?,?,?,?,?,?)",
                 user.getId(),
                 user.getName(),
-                user.getPassword());
+                user.getPassword(),
+                user.getLevel().intValue(),
+                user.getLogin(),
+                user.getRecommend());
     }
+
 
     @Override
     public User get(String id) {
@@ -52,6 +60,20 @@ public class UserDaoJdbc implements UserDao{
     @Override
     public int getCount() {
         return this.jdbcTemplate.queryForObject("select count(*) from users", Integer.class);
+    }
+
+    @Override
+    public void update(User user) {
+        this.jdbcTemplate.update(
+                "update users " +
+                        "set name = ?, password = ?, level = ?, login = ?, recommend = ? " +
+                        "where id = ? ",
+                user.getName(),
+                user.getPassword(),
+                user.getLevel().intValue(),
+                user.getLogin(),
+                user.getRecommend(),
+                user.getId());
     }
 
     @Override
