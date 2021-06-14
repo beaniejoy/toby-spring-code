@@ -31,7 +31,7 @@ import static org.junit.Assert.fail;
 public class UserServiceTest {
     // 책과 다른부분
     // upgradeLevel()을 인터페이스화 했기 때문에 proxy 기반으로 구성
-    static class TestUserService extends UserService {
+    static class TestUserService extends UserServiceImpl {
         private String id;
 
         public TestUserService(String id) {
@@ -48,6 +48,7 @@ public class UserServiceTest {
     static class TestUserLevelUpgradePolicyException extends RuntimeException {
     }
 
+    // MailSender 테스트를 위한 Mock 객체 생성
     static class MockMailSender implements MailSender {
         private List<String> requests = new ArrayList<>();
 
@@ -66,7 +67,7 @@ public class UserServiceTest {
     }
 
     @Autowired
-    UserService userService;
+    UserServiceImpl userServiceImpl;
     @Autowired
     UserDao userDao;
     @Autowired
@@ -91,7 +92,7 @@ public class UserServiceTest {
 
     @Test
     public void bean() {
-        assertThat(this.userService, is(notNullValue()));
+        assertThat(this.userServiceImpl, is(notNullValue()));
     }
 
     @Test
@@ -101,9 +102,9 @@ public class UserServiceTest {
         for (User user : users) userDao.add(user);
 
         MockMailSender mockMailSender = new MockMailSender();
-        userService.setMailSender(mockMailSender);
+        userServiceImpl.setMailSender(mockMailSender);
 
-        userService.upgradeLevels();
+        userServiceImpl.upgradeLevels();
 
         checkLevelUpgraded(users.get(0), false);
         checkLevelUpgraded(users.get(1), true);
@@ -125,8 +126,8 @@ public class UserServiceTest {
         User userWithoutLevel = users.get(0);
         userWithoutLevel.setLevel(null);
 
-        userService.add(userWithLevel);
-        userService.add(userWithoutLevel);
+        userServiceImpl.add(userWithLevel);
+        userServiceImpl.add(userWithoutLevel);
 
         User userWithLevelRead = userDao.get(userWithLevel.getId());
         User userWithoutLevelRead = userDao.get(userWithoutLevel.getId());
@@ -137,17 +138,20 @@ public class UserServiceTest {
 
     @Test
     public void upgradeAllOrNothing() throws Exception {
-        UserService testUserService = new TestUserService(users.get(3).getId());
+        UserServiceImpl testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(userDao);
-        testUserService.setUserLevelUpgradePolicy(policy);
-        testUserService.setTransactionManager(transactionManager);
         testUserService.setMailSender(mailSender);
+        testUserService.setUserLevelUpgradePolicy(policy);
+
+        UserServiceTx txUserService = new UserServiceTx();
+        txUserService.setTransactionManager(transactionManager);
+        txUserService.setUserService(testUserService);
 
         userDao.deleteAll();
         for (User user : users) userDao.add(user);
 
         try {
-            testUserService.upgradeLevels();
+            txUserService.upgradeLevels();
             fail("TestUserLevelUpgradePolicyException expected");
         } catch (TestUserLevelUpgradePolicyException e) {
             System.out.println("test error");
