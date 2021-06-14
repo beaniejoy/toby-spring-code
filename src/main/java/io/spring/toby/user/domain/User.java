@@ -8,6 +8,7 @@ public class User {
     Level level;
     int login;
     int recommend;
+    String email;
 
     public User() {
     }
@@ -67,6 +68,14 @@ public class User {
 
     public void setRecommend(int recommend) {
         this.recommend = recommend;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     // User에서 level upgrade가 이루어지는 것이기에 여기서 해당 로직 수행

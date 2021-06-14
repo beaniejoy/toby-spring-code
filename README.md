@@ -84,3 +84,13 @@ try {
 - JDBC, JTA, Hibernate, JPA, JMS 등 각각의 트랜잭션 처리 코드의 추상화를 도입
 - `PlatformTransactionManager`를 구현한 여러 기술들의 Manager 오브젝트 적용 가능
 - Manager 계층에서 각 기술에 해당하는 Transaction을 관리
+
+## 5.4 메일 서비스 추상화
+
+- 스프링에서 제공하는 MailSender 인터페이스 사용
+```xml
+<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+  <property name="host" value="mail.server.com"/>
+</bean>
+```
+MailSender > JavaMailSenderImpl

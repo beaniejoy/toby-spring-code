@@ -7,20 +7,26 @@
         <property name="userDao" ref="userDao"/>
         <property name="userLevelUpgradePolicy" ref="userLevelUpgradePolicy"/>
         <property name="transactionManager" ref="transactionManager"/>
+        <property name="mailSender" ref="mailSender"/>
     </bean>
 
     <bean id="userDao" class="io.spring.toby.user.dao.UserDaoJdbc">
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
-    <bean id="userLevelUpgradePolicy" class="io.spring.toby.user.service.UserLevelUpgradePolicyImpl">
-        <property name="userDao" ref="userDao"/>
-    </bean>
+    <bean id="userLevelUpgradePolicy" class="io.spring.toby.user.service.UserLevelUpgradePolicyImpl"/>
 
     <!--  특정 기술의 트랜잭션 관리 클래스를 적용할 때 여기를 수정하면 됨  -->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
     </bean>
+
+    <!--실제 메일서비스-->
+    <!--<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="mail.server.com"/>
+    </bean>-->
+    <!--메일 테스트 용도-->
+    <bean id="mailSender" class="io.spring.toby.user.service.DummyMailSender"/>
 
     <bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
         <property name="driverClass" value="com.mysql.cj.jdbc.Driver"/>

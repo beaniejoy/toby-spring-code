@@ -1,18 +1,11 @@
 package io.spring.toby.user.service;
 
-import io.spring.toby.user.dao.UserDao;
 import io.spring.toby.user.domain.Level;
 import io.spring.toby.user.domain.User;
 
 public class UserLevelUpgradePolicyImpl implements UserLevelUpgradePolicy{
     public static final int MIN_LOGCOUNT_FOR_SILVER = 50;
     public static final int MIN_RECOMMEND_FOR_GOLD = 30;
-
-    private UserDao userDao;
-
-    public void setUserDao(UserDao userDao) {
-        this.userDao = userDao;
-    }
 
     @Override
     public boolean canUpgradeLevel(User user) {
@@ -27,11 +20,5 @@ public class UserLevelUpgradePolicyImpl implements UserLevelUpgradePolicy{
             default:
                 throw new IllegalArgumentException("Unknown Level: " + currentLevel);
         }
-    }
-
-    @Override
-    public void upgradeLevel(User user) {
-        user.upgradeLevel();
-        userDao.update(user);
     }
 }
