@@ -66,6 +66,39 @@ public class UserServiceTest {
         }
     }
 
+    // 가짜 UserDao 오브젝트 생성을 위한 inner class 생성
+    static class MockUserDao implements UserDao {
+        private List<User> users;  // 레벨 업그레이드 후보 User 오브젝트 목록
+        private List<User> updated = new ArrayList<>(); // 실제 업그레이드 대상 오브젝트 저장 목록
+
+        public MockUserDao(List<User> users) {
+            this.users = users;
+        }
+
+        public List<User> getUpdated() {
+            return updated;
+        }
+
+        @Override
+        public List<User> getAll() {
+            return this.users;
+        }
+
+        @Override
+        public void update(User user) {
+            updated.add(user);
+        }
+
+        @Override
+        public void add(User user) { throw new UnsupportedOperationException(); }
+        @Override
+        public User get(String id) { throw new UnsupportedOperationException(); }
+        @Override
+        public void deleteAll() { throw new UnsupportedOperationException(); }
+        @Override
+        public int getCount() { throw new UnsupportedOperationException(); }
+    }
+
     @Autowired
     UserServiceImpl userServiceImpl;
     @Autowired
@@ -98,19 +131,24 @@ public class UserServiceTest {
     @Test
     @DirtiesContext
     public void upgradeLevels() throws Exception {
-        userDao.deleteAll();
-        for (User user : users) userDao.add(user);
+        // 고립된 테스트에서는 오브젝트 직접 생성
+        // (UserServiceImpl의 레벨 업그레이드 로직 테스트)
+        UserServiceImpl userServiceImpl = new UserServiceImpl();
+
+        MockUserDao mockUserDao = new MockUserDao(this.users);
+        userServiceImpl.setUserDao(mockUserDao);
 
         MockMailSender mockMailSender = new MockMailSender();
         userServiceImpl.setMailSender(mockMailSender);
 
+        userServiceImpl.setUserLevelUpgradePolicy(policy);
+
         userServiceImpl.upgradeLevels();
 
-        checkLevelUpgraded(users.get(0), false);
-        checkLevelUpgraded(users.get(1), true);
-        checkLevelUpgraded(users.get(2), false);
-        checkLevelUpgraded(users.get(3), true);
-        checkLevelUpgraded(users.get(4), false);
+        List<User> updated = mockUserDao.getUpdated();
+        assertThat(updated.size(), is(2));
+        checkUserAndLevel(updated.get(0), "bbbbb", Level.SILVER);
+        checkUserAndLevel(updated.get(1), "ddddd", Level.GOLD);
 
         List<String> request = mockMailSender.getRequests();
         assertThat(request.size(), is(2));
@@ -143,6 +181,7 @@ public class UserServiceTest {
         testUserService.setMailSender(mailSender);
         testUserService.setUserLevelUpgradePolicy(policy);
 
+        // Transaction Proxy가 가장 앞단에서 사용되어져야 한다.
         UserServiceTx txUserService = new UserServiceTx();
         txUserService.setTransactionManager(transactionManager);
         txUserService.setUserService(testUserService);
@@ -158,6 +197,11 @@ public class UserServiceTest {
         }
 
         checkLevelUpgraded(users.get(1), false);
+    }
+
+    private void checkUserAndLevel(User updated, String expectedId, Level expectedLevel) {
+        assertThat(updated.getId(), is(expectedId));
+        assertThat(updated.getLevel(), is(expectedLevel));
     }
 
     // 업그레이드가 실제 이루어졌는지를 확인하는 방법으로 변경

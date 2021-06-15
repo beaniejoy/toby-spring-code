@@ -14,6 +14,7 @@ import java.util.List;
 public class UserDaoJdbc implements UserDao{
 
     private JdbcTemplate jdbcTemplate;
+
     private RowMapper<User> userMapper =
             new RowMapper<User>() {
                 @Override
