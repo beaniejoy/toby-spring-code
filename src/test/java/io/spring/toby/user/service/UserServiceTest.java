@@ -15,6 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -181,10 +182,18 @@ public class UserServiceTest {
         testUserService.setMailSender(mailSender);
         testUserService.setUserLevelUpgradePolicy(policy);
 
-        // Transaction Proxy가 가장 앞단에서 사용되어져야 한다.
-        UserServiceTx txUserService = new UserServiceTx();
-        txUserService.setTransactionManager(transactionManager);
-        txUserService.setUserService(testUserService);
+        // Tx용 InvocationHandler 구현체에 대한 설정을 진행
+        TransactionHandler txHandler = new TransactionHandler();
+        txHandler.setTarget(testUserService);
+        txHandler.setTransactionManager(transactionManager);
+        txHandler.setPattern("upgradeLevels");
+
+        // Proxy 오브젝트 생성
+        UserService txUserService = (UserService) Proxy.newProxyInstance(
+                getClass().getClassLoader(),
+                new Class[]{UserService.class},
+                txHandler
+        );
 
         userDao.deleteAll();
         for (User user : users) userDao.add(user);

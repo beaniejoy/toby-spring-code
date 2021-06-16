@@ -72,3 +72,39 @@ userServiceImpl.setUserLevelUpgradePolicy(mockPolicy);
 ```
 UserService가 의존하고 있는 오브젝트를 대상으로 가짜객체 생성해서  
 setter 주입을 한다.
+
+## 6.3 다이내믹 프록시와 팩토리 빈
+### Proxy
+- UserService를 인터페이스화해 핵심기능을 가진 클래스와 부가기능을 가진 클래스를 구현
+- 부가기능을 가진 클래스 내부에서 핵심기능 클래스를 사용하고 대리자 역할로 본인이 클라이언트에 노출
+- `Proxy`(대리자), `Target`(실제 오브젝트)
+    
+### Decorator Pattern
+여러 프록시를 타겟에 적용
+
+### Proxy Pattern
+- 프록시와 다르게 타깃에 대한 접근 방법을 제어하려는 목적을 가진 경우
+- 타깃의 기능 자체에는 관여하지 않고 접근하는 방법을 제어해주는 프록시를 이용함
+
+### 다이나믹 프록시
+- 프록시 팩토리에 의해 런타임 시 동적으로 만들어지는 오브젝트
+- 프록시 팩토리에게 인터페이스 정보만 제공하면 해당 인터페이스를 구현한 클래스의 오브젝트를 자동 생성해줌
+- 프록시 팩토리로 만들어진 인터페이스 구현 클래스의 오브젝트에 필요한 부가기능은 직접 구현
+- 부가기능은 `InvocationHandler`를 구현한 오브젝트에 담는다.
+````java
+public class UppercaseHandler implements InvocationHandler {
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // 여기서 부가기능 수행
+        return null;
+    }
+}
+````
+- InvocationHandler는 invoke 메소드 하나만 구현하면 된다.  
+- 클라이언트의 모든 요청을 리플렉션 정보로 변환해서 invoke 메소드로 넘김
+- 여기서 Method parameter를 통해 타깃 오브젝트의 메소드를 호출할 수 있다.
+
+#### 장점
+- 프록시를 적용할 인터페이스의 메소드 개수가 수십개라면 프록시는 모든 메소드에 대해 부가기능 코드를 추가해야 한다.
+- 다이내믹 프록시는 프록시가 동적으로 만들어질 때 해당 구현 메소드가 자동으로 추가된다.
+- 타깃의 종류에 상관없이 프록시 적용 가능
