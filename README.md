@@ -104,7 +104,46 @@ public class UppercaseHandler implements InvocationHandler {
 - 클라이언트의 모든 요청을 리플렉션 정보로 변환해서 invoke 메소드로 넘김
 - 여기서 Method parameter를 통해 타깃 오브젝트의 메소드를 호출할 수 있다.
 
-#### 장점
+#### 다이나믹 프록시 장점
 - 프록시를 적용할 인터페이스의 메소드 개수가 수십개라면 프록시는 모든 메소드에 대해 부가기능 코드를 추가해야 한다.
 - 다이내믹 프록시는 프록시가 동적으로 만들어질 때 해당 구현 메소드가 자동으로 추가된다.
 - 타깃의 종류에 상관없이 프록시 적용 가능
+
+### 팩토리 빈
+````java
+Class.forName("Class Name").newInstance();
+````
+- 스프링은 위와 같이 내부적으로 리플렉션 API를 이용해 빈 오브젝트 생성(등록)
+```java
+// Proxy 오브젝트 생성 -> 문제는 이 자체만으로 스프링에 빈으로 등록 불가
+UserService txUserService = (UserService) Proxy.newProxyInstance(
+        getClass().getClassLoader(),
+        new Class[]{UserService.class},
+txHandler
+);
+```
+- 다이내믹 프록시는 위의 방식과 다르게 빈 설정이 불가
+- 다이내믹 프록시는 일반적인 스프링 빈으로 등록할 방법이 없음
+- 팩토리 빈(`FactoryBean`)을 사용하게 된다.
+```xml
+<bean id="userService" class="io.spring.toby.user.service.TxProxyFactoryBean">
+    <property name="target" ref="userServiceImpl"/>
+    <property name="transactionManager" ref="transactionManager"/>
+    <property name="pattern" value="upgradeLevels"/>
+    <property name="serviceInterface" value="io.spring.toby.user.service.UserService"/>
+</bean>
+```
+FactoryBean을 bean으로 설정함으로써 getObject에 의한 새로운 오브젝트를 빈으로 설정
+
+#### 팩토리 빈 장점
+- 프록시 팩토리 빈 재사용성
+    - TxProxyFactoryBean 클래스는 다양한 서비스 인터페이스에 적용 가능
+    - UserService에만 적용되는 것이 아닌 여러 Service 인터페이스에 범용적으로 사용가능
+    - TxProxyFactoryBean에 해당 인터페이스의 Class 정보만 주입해주면 된다.
+    
+#### 팩토리 빈 한계
+- 한 클래스 안에서의 여러 메소드에 대해 부가기능을 한번에 제공하는 것은 가능
+- but, 여러 클래스에서 해당 부가기능 적용해야 할 때 팩토리 빈은 구현할 수 없음
+- 여러 개의 부가기능 적용할 때도 하나의 부가기능을 위한 xml bean 설정 내용을 부가기능마다 다 설정해줘야 한다.
+- xml 설정 내용에 대한 부담이 커짐
+- `InvocationHandler` 오브젝트가 프록시 팩토리 빈 개수만큼 새로 생성됨(중복 발생)
