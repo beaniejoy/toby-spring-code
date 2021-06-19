@@ -6,6 +6,7 @@ import io.spring.toby.user.domain.User;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mail.MailException;
@@ -16,7 +17,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -181,19 +181,14 @@ public class UserServiceTest {
 
     @Test
     @DirtiesContext
-    public void upgradeAllOrNothing() throws Exception {
+    public void upgradeAllOrNothing() {
         UserServiceImpl testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(userDao);
         testUserService.setMailSender(mailSender);
         testUserService.setUserLevelUpgradePolicy(policy);
 
-        /*
-        * Transaction Test(rollback 여부 테스트)를 위해 설정했던 TestUserService
-        * TestUserService를 DI하기 위해 TxProxyFactoryBean 오브젝트를 가져옴
-        * @DirtiesContext 설정을 통해 다른 메소드 테스트에 영향 가지 않도록 설정
-        * */
-        TxProxyFactoryBean txProxyFactoryBean =
-                context.getBean("&userService", TxProxyFactoryBean.class);
+        ProxyFactoryBean txProxyFactoryBean =
+                context.getBean("&userService", ProxyFactoryBean.class);
 
         txProxyFactoryBean.setTarget(testUserService);
         UserService txUserService = (UserService) txProxyFactoryBean.getObject();

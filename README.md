@@ -117,9 +117,9 @@ Class.forName("Class Name").newInstance();
 ```java
 // Proxy 오브젝트 생성 -> 문제는 이 자체만으로 스프링에 빈으로 등록 불가
 UserService txUserService = (UserService) Proxy.newProxyInstance(
-        getClass().getClassLoader(),
-        new Class[]{UserService.class},
-txHandler
+        getClass().getClassLoader(),    // 동적으로 생성되는 다이내믹 프록시 클래스의 로딩에 사용될 클래스로더 설정
+        new Class[]{UserService.class}, // 구현할 인터페이스 대상
+        txHandler                       // 부가기능과 위임 코드를 담은 InvocationHandler 구현체
 );
 ```
 - 다이내믹 프록시는 위의 방식과 다르게 빈 설정이 불가
@@ -147,3 +147,31 @@ FactoryBean을 bean으로 설정함으로써 getObject에 의한 새로운 오�
 - 여러 개의 부가기능 적용할 때도 하나의 부가기능을 위한 xml bean 설정 내용을 부가기능마다 다 설정해줘야 한다.
 - xml 설정 내용에 대한 부담이 커짐
 - `InvocationHandler` 오브젝트가 프록시 팩토리 빈 개수만큼 새로 생성됨(중복 발생)
+
+## 6.4 스프링의 프록시 팩토리 빈
+- 스프링에서 여러 JDK 기반 프록시 생성 기술을 일관된 방법으로 만들 수 있게 도와주는 추상 레이어
+- **프록시 오브젝트를 생성해주는 기술을 추상화한 팩토리 빈을 스프링에서 제공**(`ProxyFactoryBean`)
+
+### ProxyFactoryBean
+- `MethodInterceptor`
+    - `InvocationHandler` 인터페이스의 `invoke()` 단계에서 타깃 오브젝트에 대한 정보 제공하지 않음  
+    이것을 구현한 클래스에서 타깃을 알고 있어야 함(주입 받아야 한다.)
+    - `MethodInterceptor` `invoke()` 단계에서 ProxyFactoryBean에서 타깃 오브젝트 정보까지 함께 제공 받음
+    - 타깃 오브젝트에 상관없이 독립적으로 생성 가능(DI가 필요없어서 타깃과 의존관계가 없어짐)
+    
+- `Advice`
+    - 타깃 오브젝트에 종속되지 않는 순수한 부가기능을 담은 오브젝트
+    - 어드바이스는 일종의 템플릿이 되고 `MethodInvocation`이 콜백이 된다. (템플릿 콜백 패턴)
+    - 여기서는 `MethodInterceptor`의 구현체가 `Advice`가 된다.
+    
+- `Pointcut`
+    - 기존에 `InvocationHandler`에서는 pattern을 주입받아서 적용 대상 메소드를 설정함
+    - `MethodInterceptor`는 여러 프록시가 공유해서 사용하기에 pattern 주입방식은 적절하지 못함  
+      (모든 프록시가 주입받은 하나의 pattern 적용방식을 따를 수 밖에 없음)
+    - 프록시로부터 pattern을 분리 -> `Pointcut` 사용
+    
+- `Advisor`
+    - `Pointcut + Advice`
+    - `ProxyFactoryBean`에는 여러 `Advice`, `Pointcut`이 추가되기에 이를 매핑해야 함  
+    
+Proxy - Advice, Pointcut 분리와 DI 적용 > 전략 패턴 구조  
