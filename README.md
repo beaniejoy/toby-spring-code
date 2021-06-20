@@ -175,3 +175,38 @@ FactoryBean을 bean으로 설정함으로써 getObject에 의한 새로운 오�
     - `ProxyFactoryBean`에는 여러 `Advice`, `Pointcut`이 추가되기에 이를 매핑해야 함  
     
 Proxy - Advice, Pointcut 분리와 DI 적용 > 전략 패턴 구조  
+
+## 6.5 스프링 AOP
+- 한번에 여러 개의 빈에 ProxyFactoryBean에 의한 프록시를 적용할 수 없을까에서 출발
+- 이전까지는 타깃 빈에 대해서 ProxyFactoryBean 설정부분을 추가했어야 했다.
+
+### BeanPostProcessor
+- 빈 후처리기
+- 스프링 빈 오브젝트로 만들어지고 난 후에 빈 오브젝트를 다시 가공할 수 있게 해줌
+- `DefaultAdvisorAutoProxyCreator`
+    - 스프링이 제공하는 빈 후처리기 중 하나
+    - Advisor를 이용한 자동 프록시 생성기
+    - 등록된 빈 중에서 Advisor 인터페이스를 구현한 것을 모두 찾는다.
+
+```xml
+<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+```
+    
+### Pointcut
+- 포인트컷은 프록시를 적용할 클래스 확인과 어드바이스 적용할 메소드 확인 기능 둘다 가지고 있음
+- 프록시 적용 대상 클래스 여부 판단 > 어드바이스 적용할 메소드 확인
+
+### 포인트컷 표현식
+```xml
+<!-- AspectJ-->
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjrt</artifactId>
+    <version>1.9.6</version>
+</dependency>
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjweaver</artifactId>
+    <version>1.9.6</version>
+</dependency>
+```

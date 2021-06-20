@@ -6,7 +6,6 @@ import io.spring.toby.user.domain.User;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mail.MailException;
@@ -23,8 +22,8 @@ import java.util.List;
 
 import static io.spring.toby.user.service.UserLevelUpgradePolicyImpl.MIN_LOGCOUNT_FOR_SILVER;
 import static io.spring.toby.user.service.UserLevelUpgradePolicyImpl.MIN_RECOMMEND_FOR_GOLD;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -33,12 +32,8 @@ import static org.junit.Assert.fail;
 public class UserServiceTest {
     // 책과 다른부분
     // upgradeLevel()을 인터페이스화 했기 때문에 proxy 기반으로 구성
-    static class TestUserService extends UserServiceImpl {
-        private String id;
-
-        public TestUserService(String id) {
-            this.id = id;
-        }
+    static class TestUserServiceImpl extends UserServiceImpl {
+        private String id = "ddddd";
 
         @Override
         protected void upgradeLevel(User user) {
@@ -105,7 +100,9 @@ public class UserServiceTest {
     ApplicationContext context;
 
     @Autowired
-    UserServiceImpl userServiceImpl;
+    UserService userService;
+    @Autowired
+    UserService testUserService;
     @Autowired
     UserDao userDao;
     @Autowired
@@ -126,11 +123,6 @@ public class UserServiceTest {
                 new User("ddddd", "좋아", "spring4", Level.SILVER, 60, MIN_RECOMMEND_FOR_GOLD),
                 new User("eeeee", "나이스", "spring5", Level.GOLD, 100, Integer.MAX_VALUE)
         );
-    }
-
-    @Test
-    public void bean() {
-        assertThat(this.userServiceImpl, is(notNullValue()));
     }
 
     @Test
@@ -169,8 +161,8 @@ public class UserServiceTest {
         User userWithoutLevel = users.get(0);
         userWithoutLevel.setLevel(null);
 
-        userServiceImpl.add(userWithLevel);
-        userServiceImpl.add(userWithoutLevel);
+        userService.add(userWithLevel);
+        userService.add(userWithoutLevel);
 
         User userWithLevelRead = userDao.get(userWithLevel.getId());
         User userWithoutLevelRead = userDao.get(userWithoutLevel.getId());
@@ -180,24 +172,18 @@ public class UserServiceTest {
     }
 
     @Test
-    @DirtiesContext
+    public void advisorAutoProxyCreator() {
+        assertThat(testUserService, is(instanceOf(java.lang.reflect.Proxy.class)));
+    }
+
+
+    @Test
     public void upgradeAllOrNothing() {
-        UserServiceImpl testUserService = new TestUserService(users.get(3).getId());
-        testUserService.setUserDao(userDao);
-        testUserService.setMailSender(mailSender);
-        testUserService.setUserLevelUpgradePolicy(policy);
-
-        ProxyFactoryBean txProxyFactoryBean =
-                context.getBean("&userService", ProxyFactoryBean.class);
-
-        txProxyFactoryBean.setTarget(testUserService);
-        UserService txUserService = (UserService) txProxyFactoryBean.getObject();
-
         userDao.deleteAll();
         for (User user : users) userDao.add(user);
 
         try {
-            txUserService.upgradeLevels();
+            this.testUserService.upgradeLevels();
             fail("TestUserLevelUpgradePolicyException expected");
         } catch (TestUserLevelUpgradePolicyException e) {
             System.out.println("test error");
