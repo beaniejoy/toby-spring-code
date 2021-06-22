@@ -20,9 +20,12 @@
         <property name="transactionManager" ref="transactionManager"/>
     </bean>
 
-    <bean id="transactionPointcut" class="io.spring.toby.learningtest.jdk.proxy.NameMatchClassMethodPointcut">
+    <!--<bean id="transactionPointcut" class="io.spring.toby.learningtest.jdk.proxy.NameMatchClassMethodPointcut">
         <property name="mappedClassName" value="*ServiceImpl"/>
         <property name="mappedName" value="upgrade*"/>
+    </bean>-->
+    <bean id="transactionPointcut" class="org.springframework.aop.aspectj.AspectJExpressionPointcut">
+        <property name="expression" value="execution(* *..*ServiceImpl.upgrade*(..))"/>
     </bean>
 
     <bean id="transactionAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor">
@@ -30,6 +33,7 @@
         <property name="pointcut" ref="transactionPointcut"/>
     </bean>
 
+    <!--  BeanPostProcessor : 빈 후처리기 중 하나 -->
     <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
 
     <!--  특정 기술의 트랜잭션 관리 클래스를 적용할 때 여기를 수정하면 됨  -->

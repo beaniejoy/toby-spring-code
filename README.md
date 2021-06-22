@@ -196,6 +196,13 @@ Proxy - Advice, Pointcut 분리와 DI 적용 > 전략 패턴 구조
 - 포인트컷은 프록시를 적용할 클래스 확인과 어드바이스 적용할 메소드 확인 기능 둘다 가지고 있음
 - 프록시 적용 대상 클래스 여부 판단 > 어드바이스 적용할 메소드 확인
 
+```java
+public interface Pointcut {
+    ClassFilter getClassFilter();       // 프록시 적용할 클래스 확인
+    MethodMatcher getMethodMatcher();   // 어드바이스를 적용할 메소드 확인
+}
+```
+
 ### 포인트컷 표현식
 ```xml
 <!-- AspectJ-->
@@ -210,3 +217,46 @@ Proxy - Advice, Pointcut 분리와 DI 적용 > 전략 패턴 구조
     <version>1.9.6</version>
 </dependency>
 ```
+
+- `execution(* *(..))`
+- `execution(* hello(..))`
+- `execution(* hello())`
+- `execution(* hello(String))`
+- `@annotation(org.springframework.transaction.annotation.Transactional)`  
+  이런 식으로 `@Transactional`에 대해 프록시를 생성해줄 수 있다.
+- 포인트컷 표현식의 클래스 이름에 적용되는 패턴은 이름 패턴이 아닌 타입패턴  
+  ex) `*..UserService`라고 한다면 `UserService` 인터페이스를 구현한 빈들 모두에 해당 
+  
+### AOP
+- `Aspect Oriented Programing`  
+- 부가기능 모듈화에 대해 기존 객체지향 설계 패러다임과는 구분되는 새로운 특성이 존재.
+- Aspect(관점): 애플리케이션 핵심기능을 담고있지는 않지만 핵심기능에 부가되어 의미를 갖는 특별한 모듈  
+  (Logging 관점, Transaction 처리 관점 등등 기능의 관심사에 따라 나뉘어서 관점이 붙은듯하다.)
+- `Spring AOP`는 프록시 방식의 AOP
+- `AspectJ`도 존재  
+  - 바이트코드 조작을 통한 타깃 오브젝트 수정 방식
+  - 컴파일된 클래스 파일 직접 수정 방식
+  
+### AOP Namespace
+```xml
+<beans ...
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="...
+                        http://www.springframework.org/schema/aop
+                        http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+    <aop:config>
+        <aop:pointcut id="transactionPoincut"
+                      expression="execution(* *..*ServiceImpl.upgrade*(..))" />
+        <aop:advisor advice-ref="transactionAdvice" pointcut-ref="transactionPointcut" />
+    </aop:config>
+</beans>
+```
+위의 xml로 aop 등록 가능
+```xml
+<aop:config>
+    <aop:advisor advice-ref="transactionAdvice" 
+                 pointcut="execution(* *..*ServiceImpl.upgrade*(..))" />
+</aop:config>
+```
+이렇게 하나의 태그로 advice, pointcut 등록 가능  
