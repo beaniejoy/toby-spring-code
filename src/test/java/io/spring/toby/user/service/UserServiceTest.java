@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -28,7 +29,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/test-applicationContext.xml")
+@ContextConfiguration(locations = "/test-aop-applicationContext.xml")
 public class UserServiceTest {
     // 책과 다른부분
     // upgradeLevel()을 인터페이스화 했기 때문에 proxy 기반으로 구성
@@ -39,6 +40,15 @@ public class UserServiceTest {
         protected void upgradeLevel(User user) {
             if (user.getId().equals(this.id)) throw new TestUserLevelUpgradePolicyException();
             super.upgradeLevel(user);
+        }
+
+        @Override
+        public List<User> getAll() {
+            for(User user : super.getAll()) {
+                // readOnly=true 일 때 동작되는지 테스트
+                super.update(user);
+            }
+            return null;
         }
     }
 
@@ -190,6 +200,11 @@ public class UserServiceTest {
         }
 
         checkLevelUpgraded(users.get(1), false);
+    }
+
+    @Test(expected = TransientDataAccessResourceException.class)
+    public void readOnlyTransactionAttribute() {
+        testUserService.getAll();
     }
 
     private void checkUserAndLevel(User updated, String expectedId, Level expectedLevel) {

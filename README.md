@@ -260,3 +260,74 @@ public interface Pointcut {
 </aop:config>
 ```
 이렇게 하나의 태그로 advice, pointcut 등록 가능  
+
+## 6.6 트랜잭션 속성
+
+```java
+TransactionStatus status =
+                this.transactionManager.getTransaction(new DefaultTransactionDefinition());
+```
+`DefaultTransactionDefinition`이 구현하고 있는 `TransactionDefinition`에는 트랜잭션 관련 4가지 속성 정의
+- Propagation
+  - 트랜잭션 경계에서 이미 진행 중인 트랜잭션의 유무에 따라 어떻게 동작할 것인지 설정
+  - REQUIRED: 진행 중인 트랜잭션 없을 시 새로운 트랜잭션 시작, 이미 시작된 트랜잭션 존재시 이에 참여
+  - REQUIRES_NEW: 항상 새로운 트랜잭션 시작
+  - NOT SUPPORTED: 트랜잭션 없이 동작, 기존에 진행 중인 트랜잭션이 있어도 무시.
+  
+- Isolation
+  - 여러 트랜잭션이 동시 실행될 때 얼마나 동시에 진행시킬지 정도를 설정
+  - ISOLATION_DEFAULT 를 하면 각 DB에 설정된 기본 설정을 가져온다.
+  
+- 제한시간: 트랜잭션 수행에 대한 제한시간 설정. 기본적으로 제한시간 없음.
+- readOnly: 트랜잭션 내 데이터 조작을 막을 수 있다.
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                            http://www.springframework.org/schema/beans/spring-beans.xsd
+                            http://www.springframework.org/schema/aop
+                            http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+                            http://www.springframework.org/schema/tx
+                            http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+  
+  <!-- ... -->
+  <bean id="transactionAdvice" class="org.springframework.transaction.interceptor.TransactionInterceptor">
+      <property name="transactionManager" ref="transactionManager"/>
+      <property name="transactionAttributes">
+          <props>
+              <prop key="get*">PROPAGATION_REQUIRED,readOnly,timeout_30</prop>
+              <prop key="upgrade*">PROPAGATION_REQUIRES_NEW,ISOLATION_SERIALIZABLE</prop>
+              <prop key="*">PROPAGATION_REQUIRED</prop>
+          </props>
+      </property>
+  </bean>
+  
+  <!-- 아래와 같이 설정 가능 -->
+  <tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+      <tx:attributes>
+          <tx:method name="get*" propagation="REQUIRED" read-only="true" timeout="30"/>
+          <tx:method name="upgrade*" propagation="REQUIRES_NEW" isolation="SERIALIZABLE"/>
+          <tx:method name="*" propagation="REQUIRED"/>
+      </tx:attributes>
+  </tx:advice>
+  
+  <!-- 기본 디폴트 트랜잭션 속성 부여 -->
+  <!-- transactionManager bean id가 설정되어 있으면 자동으로 등록 -->
+  <tx:advice id="transactionAdvice">
+      <tx:attributes>
+          <tx:method name="*"/>
+      </tx:attributes>
+  </tx:advice>
+  
+  <aop:config>
+      <aop:advisor advice-ref="transactionAdvice" pointcut="bean(*Service)"/>
+      <!-- 여기에 여러 advisor 등록 가능 -->
+  </aop:config>
+  <!-- ... -->
+</beans>
+```
+- `TransactionInterceptor`: `MethodInterceptor`를 구현
+- MethodInterceptor에서 기본적인 어드바이스 동작은 똑같다.
+- transactionAttributes: Properties 타입으로 트랜잭션 관련 속성을 정의한 프로퍼티

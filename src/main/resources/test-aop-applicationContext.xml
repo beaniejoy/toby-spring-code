@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                            http://www.springframework.org/schema/beans/spring-beans.xsd
+                            http://www.springframework.org/schema/aop
+                            http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+                            http://www.springframework.org/schema/tx
+                            http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+    <bean id="userService" class="io.spring.toby.user.service.UserServiceImpl">
+        <property name="userDao" ref="userDao"/>
+        <property name="userLevelUpgradePolicy" ref="userLevelUpgradePolicy"/>
+        <property name="mailSender" ref="mailSender"/>
+    </bean>
+
+    <bean id="userDao" class="io.spring.toby.user.dao.UserDaoJdbc">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="userLevelUpgradePolicy" class="io.spring.toby.user.service.UserLevelUpgradePolicyImpl"/>
+
+    <!--트랜잭션 proxy 생성-->
+    <tx:advice id="transactionAdvice">
+        <tx:attributes>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config>
+        <aop:advisor advice-ref="transactionAdvice" pointcut="bean(*Service)"/>
+        <!-- 여기에 여러 advisor 등록 가능 -->
+    </aop:config>
+
+    <!--  BeanPostProcessor : 빈 후처리기 중 하나 -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+
+    <!--  특정 기술의 트랜잭션 관리 클래스를 적용할 때 여기를 수정하면 됨  -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+        <property name="driverClass" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/toby"/>
+        <property name="username" value="root"/>
+        <property name="password" value="springtest"/>
+    </bean>
+
+    <!--실제 메일서비스-->
+    <!--<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="mail.server.com"/>
+    </bean>-->
+    <!--메일 테스트 용도-->
+    <bean id="mailSender" class="io.spring.toby.user.service.DummyMailSender"/>
+
+    <!--Test 용도-->
+    <bean id="testUserService"
+          class="io.spring.toby.user.service.UserServiceTest$TestUserServiceImpl"
+          parent="userService"/>
+</beans>
