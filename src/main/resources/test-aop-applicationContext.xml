@@ -10,6 +10,8 @@
                             http://www.springframework.org/schema/tx
                             http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
 
+    <tx:annotation-driven/>
+
     <bean id="userService" class="io.spring.toby.user.service.UserServiceImpl">
         <property name="userDao" ref="userDao"/>
         <property name="userLevelUpgradePolicy" ref="userLevelUpgradePolicy"/>
@@ -23,20 +25,20 @@
     <bean id="userLevelUpgradePolicy" class="io.spring.toby.user.service.UserLevelUpgradePolicyImpl"/>
 
     <!--트랜잭션 proxy 생성-->
-    <tx:advice id="transactionAdvice">
-        <tx:attributes>
-            <tx:method name="get*" read-only="true"/>
-            <tx:method name="*"/>
-        </tx:attributes>
-    </tx:advice>
+<!--    <tx:advice id="transactionAdvice">-->
+<!--        <tx:attributes>-->
+<!--            <tx:method name="get*"/>-->
+<!--            <tx:method name="*"/>-->
+<!--        </tx:attributes>-->
+<!--    </tx:advice>-->
 
-    <aop:config>
-        <aop:advisor advice-ref="transactionAdvice" pointcut="bean(*Service)"/>
-        <!-- 여기에 여러 advisor 등록 가능 -->
-    </aop:config>
+<!--    <aop:config>-->
+<!--        <aop:advisor advice-ref="transactionAdvice" pointcut="bean(*Service)"/>-->
+<!--        &lt;!&ndash; 여기에 여러 advisor 등록 가능 &ndash;&gt;-->
+<!--    </aop:config>-->
 
     <!--  BeanPostProcessor : 빈 후처리기 중 하나 -->
-    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+<!--    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>-->
 
     <!--  특정 기술의 트랜잭션 관리 클래스를 적용할 때 여기를 수정하면 됨  -->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">

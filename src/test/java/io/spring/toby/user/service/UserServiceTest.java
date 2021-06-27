@@ -186,7 +186,6 @@ public class UserServiceTest {
         assertThat(testUserService, is(instanceOf(java.lang.reflect.Proxy.class)));
     }
 
-
     @Test
     public void upgradeAllOrNothing() {
         userDao.deleteAll();

@@ -331,3 +331,36 @@ TransactionStatus status =
 - `TransactionInterceptor`: `MethodInterceptor`를 구현
 - MethodInterceptor에서 기본적인 어드바이스 동작은 똑같다.
 - transactionAttributes: Properties 타입으로 트랜잭션 관련 속성을 정의한 프로퍼티
+
+## 6.7 애노테이션 트랜잭션 속성과 포인트컷
+
+- `TransactionAttributeSourcePointcut`  
+  - `@Transactional`이 부여된 곳을 기준으로 부여된 빈 오브젝트를 모두 찾아서 포인트컷 선정 결과로 돌려줌
+  - 포인트컷의 자동등록
+  
+- `AnnotationTransactionAttributeSource`
+  - 기존 TransactionInterceptor에서는 메소드 이름 패턴을 통해 일괄적인 트랜잭션 속성정보 적용
+  - 이제는 `@Transactional`에서 트랜잭션 속성정보를 가져와 등록, 포인트컷도 이를 참조
+
+```xml
+<tx:annotation-driven/>
+```
+- 위의 tag 설정 하나만 있으면 준비완료
+- 기존에 설정했던 `pointcut`, `advice`, `advisor`, `DefaultAdvisorAutoProxyCreator` 설정 내용 없어도 된다.  
+  `@Transactional` 기준으로 자동으로 pointcut, advice 생성
+
+```java
+@Transactional
+public interface UserService {
+    void add(User user);
+    void deleteAll();
+    void update(User user);
+    void upgradeLevels();
+    
+    @Transactional(readOnly = true)
+    User get(String id);
+    
+    @Transactional(readOnly = true)
+    List<User> getAll();
+}
+```
