@@ -16,6 +16,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +47,7 @@ public class UserServiceTest {
 
         @Override
         public List<User> getAll() {
-            for(User user : super.getAll()) {
+            for (User user : super.getAll()) {
                 // readOnly=true 일 때 동작되는지 테스트
                 super.update(user);
             }
@@ -97,13 +100,24 @@ public class UserServiceTest {
         }
 
         @Override
-        public void add(User user) { throw new UnsupportedOperationException(); }
+        public void add(User user) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
-        public User get(String id) { throw new UnsupportedOperationException(); }
+        public User get(String id) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
-        public void deleteAll() { throw new UnsupportedOperationException(); }
+        public void deleteAll() {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
-        public int getCount() { throw new UnsupportedOperationException(); }
+        public int getCount() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Autowired
@@ -204,6 +218,14 @@ public class UserServiceTest {
     @Test(expected = TransientDataAccessResourceException.class)
     public void readOnlyTransactionAttribute() {
         testUserService.getAll();
+    }
+
+    @Test
+    @Transactional
+    public void transactionSync() {
+        userService.deleteAll();
+        userService.add(users.get(0));
+        userService.add(users.get(1));
     }
 
     private void checkUserAndLevel(User updated, String expectedId, Level expectedLevel) {
