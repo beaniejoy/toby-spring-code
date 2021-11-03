@@ -13,7 +13,7 @@ public interface UserDao {
 
     void deleteAll();
 
-    int getCount();
+    Integer getCount();
 
     void update(User user);
 }

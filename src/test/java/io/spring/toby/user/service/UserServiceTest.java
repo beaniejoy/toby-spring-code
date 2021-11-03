@@ -16,9 +16,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,7 +113,7 @@ public class UserServiceTest {
         }
 
         @Override
-        public int getCount() {
+        public Integer getCount() {
             throw new UnsupportedOperationException();
         }
     }
