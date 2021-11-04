@@ -51,3 +51,67 @@ public class SimpleSqlService implements SqlService {
   //...
 }
 ```
+
+## 7.2 인터페이스 분리와 자기참조 빈
+- 위의 방식은 하나의 xml 설정파일에 SQL정보와 DI정보들을 담고 있다.
+- SQL 전용 독립적인 설정파일로 관리하는 것이 좋음
+
+### JAXB
+- Java Architecture for XML Binding
+- JDK 6, java.xml.bind package내 존재
+- XML 문서정보를 동일한 구조의 오브젝트로 직접 매핑
+  - XML 정보를 그대로 담고 있는 오브젝트 트리 구조로 만들어 줌
+  - **XML 정보를 오브젝트처럼 다룰 수 있다는 장점 존재**
+#### maven dependency
+```xml
+<!-- JAXB Java11-->
+<dependency>
+  <groupId>jakarta.xml.bind</groupId>
+  <artifactId>jakarta.xml.bind-api</artifactId>
+  <version>3.0.1</version>
+</dependency>
+<dependency>
+  <groupId>com.sun.xml.bind</groupId>
+  <artifactId>jaxb-impl</artifactId>
+  <version>3.0.0-M5</version>
+  <scope>runtime</scope>
+</dependency>
+```
+#### sqlmap.xsd
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://www.example.org/sqlmap"
+        xmlns:tns="http://www.example.org/sqlmap"
+        elementFormDefault="qualified">
+    <element name="sqlmap">
+        <complexType>
+            <sequence>
+                <element name="sql" maxOccurs="unbounded" type="tns:sqlType"></element>
+            </sequence>
+        </complexType>
+    </element>
+    <complexType name="sqlType">
+        <simpleContent>
+            <extension base="string">
+                <attribute name="key" use="required" type="string" />
+            </extension>
+        </simpleContent>
+    </complexType>
+</schema>
+```
+#### run JAXB compiler
+```shell
+$ xjc -p io.spring.toby.user.sqlservice.jaxb sqlmap.xsd -d src/main/java
+```
+
+- `SqlType.java` -> `<sql>` 태그 정보를 담을 클래스
+- `Sqlmap.java` -> `<sqlmap>`이 바인딩될 클래스
+
+#### JaxbTest시 유의사항
+```java
+Sqlmap sqlmap = (Sqlmap) unmarshaller.unmarshal(
+    getClass().getResourceAsStream("sqlmap.xml")
+);
+```
+- `getClass().getResourceAsStream("name")`은 maven에서 package된 `target` 폴더내의 `test-classes` 안에서의 같은 경로로 해야한다.
