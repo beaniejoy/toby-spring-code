@@ -13,7 +13,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JaxbTest {
-    @Test
+
     public void readSqlmap() throws JAXBException {
         String contextPath = Sqlmap.class.getPackage().getName();
         JAXBContext context = JAXBContext.newInstance(contextPath);

@@ -115,3 +115,60 @@ Sqlmap sqlmap = (Sqlmap) unmarshaller.unmarshal(
 );
 ```
 - `getClass().getResourceAsStream("name")`은 maven에서 package된 `target` 폴더내의 `test-classes` 안에서의 같은 경로로 해야한다.
+
+#### UserDao에 sqlmap.xml 파일 적용하기
+
+```java
+// XmlSqlService.java
+InputStream is = UserDao.class.getResourceAsStream("/jaxb/sqlmap.xml");
+```
+- maven 프로젝트로 관리되기 때문에 설정파일은 `resources` 디렉토리에 관리하는 것이 좋다.
+- `resources/jaxb/sqlmap.xml` 으로 관리되도록 구성함
+- java 코드 내에서는 `getResourceAsStream` 기준이 `/` 로 설정하면 된다.
+
+### Bean 초기화 작업
+- 지금까지의 XmlSqlService 클래스는 기본 생성자에 JAXB 관련 xml 파일 언마샬링하는 작업을 진행하고 있다.
+- 기본 생성자에 예외 발생하는 부분이 있으므로 이를 빈 초기화 작업에서 하는 것은 좋지 않다.
+- 읽어들일 파일의 위치와 이름이 코드에 고정되어 있다는 점도 단점(`/jaxb/sqlmap.xml`)
+- 이를 분리하는 작업 진행
+
+```xml
+<beans xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+  
+    <context:annotation-config />
+</beans>
+```
+- bean의 제어권은 스프링에 있기 때문에 스프링에서 처리해주어야 한다.
+- AOP의 빈 후처리기를 사용(스프링 컨테이너가 빈 생성 후 부가적인 작업 수행)
+  - proxy 자동생성기
+  - 애노테이션을 이용한 후처리기 등록
+```java
+@PostConstruct
+public void loadSql() { 
+    //... 
+}
+```
+1. XML 빈 설정파일을 읽는다.(`applicationContext.xml`)
+2. 빈의 오브젝트 생성 (`<bean>`)
+3. 프로퍼티에 의존 오브젝트(`ref`) 또는 값(`value`)을 주입(`<property>`)
+4. 빈이나 태그로 등록된 후처리기를 동작(`@PostConstruct`)
+
+### 인터페이스 분리
+- XML 방식 이외의 SQL read 기술에 대한 범용적인 적용 가능한 구조로 전환
+- `SqlReader`, `SqlRegistry` 두 개의 인터페이스를 `SqlService`에 적용
+- `SqlReader`
+  - JAXB와 같이 특정 구현에 의존하도록 정의되지 않게 구성해야 한다.
+- `SqlRegistry`
+  - `SqlReader`가 읽어들인 SQL 내용을 담는 인터페이스
+  - `SqlService`가 이 인터페이스를 통해 SQL 검색
+- 여기서는 XmlSqlService 하나의 클래스 코드에 `SqlService`, `SqlReader`, `SqlRegistry` 세 개의 인터페이스를 구현해서 사용함
+  - 세 개의 인터페이스 각각의 구현 클래스를 구성하는 것보다 기존의 XmlSqlService에서 같이 상속받아 구현하는 것이 좋아보임
+```xml
+<bean id="sqlService" class="io.spring.toby.user.sqlservice.XmlSqlService">
+  <property name="sqlReader" ref="sqlService"/>
+  <property name="sqlRegistry" ref="sqlService"/>
+  <property name="sqlmapFile" value="/jaxb/sqlmap.xml"/>
+</bean>
+```

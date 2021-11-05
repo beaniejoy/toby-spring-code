@@ -11,4 +11,8 @@ public class SqlRetrievalFailureException extends RuntimeException{
     public SqlRetrievalFailureException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public SqlRetrievalFailureException(RuntimeException e) {
+        super(e);
+    }
 }
