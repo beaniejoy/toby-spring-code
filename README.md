@@ -172,3 +172,31 @@ public void loadSql() {
   <property name="sqlmapFile" value="/jaxb/sqlmap.xml"/>
 </bean>
 ```
+
+### 디폴트 의존관계
+- `XmlSqlService` 클래스에서 세 인터페이스의 구현 클래스를 각각 구현
+  - `BaseSqlService`
+  - `HashMapSqlRegistry`
+  - `JaxbXmlReader`
+- 이렇게 되면 xml 설정파일에도 세 부분에 대한 bean 등록을 해주어야 한다.
+```java
+public class DefaultSqlService extends BaseSqlService{
+    public DefaultSqlService() {
+        setSqlReader(new JaxbXmlSqlReader());
+        setSqlRegistry(new HashMapSqlRegistry());
+    }
+}
+```
+- 만약 JAXB 기술을 기본적으로 사용한다면 디폴트 설정을 자바코드에 해줄 수 있다.
+- **`디폴트 의존관계`: 외부에서 DI 받지 않는 경우 기본적으로 자동 적용되는 의존관계**
+- 위 코드처럼 생성자에 기본 관계를 설정할 수 있다.
+````java
+// JaxbXmlSqlReader.java
+private static final String DEFAULT_SQLMAP_FILE = "/jaxb/sqlmap.xml";
+private String sqlmapFile = DEFAULT_SQLMAP_FILE;
+
+public void setSqlmapFile(String sqlmapFile) {
+    this.sqlmapFile = sqlmapFile;
+}
+````
+- 대신 `JaxbXmlSqlReader` 코드에 `sqlmap.xml` 경로에 대한 디폴트 설정이 필요하다.

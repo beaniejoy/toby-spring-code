@@ -28,12 +28,7 @@
         <property name="sqlService" ref="sqlService"/>
     </bean>
 
-    <bean id="sqlService" class="io.spring.toby.user.sqlservice.XmlSqlService">
-        <property name="sqlReader" ref="sqlService"/>
-        <property name="sqlRegistry" ref="sqlService"/>
-        <property name="sqlmapFile" value="/jaxb/sqlmap.xml"/>
-    </bean>
-
+    <bean id="sqlService" class="io.spring.toby.user.sqlservice.DefaultSqlService" />
 
     <bean id="userLevelUpgradePolicy" class="io.spring.toby.user.service.UserLevelUpgradePolicyImpl"/>
 
