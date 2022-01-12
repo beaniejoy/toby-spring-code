@@ -2,9 +2,9 @@ package io.spring.toby.learningtest.jdk.jaxb;
 
 import io.spring.toby.user.sqlservice.jaxb.SqlType;
 import io.spring.toby.user.sqlservice.jaxb.Sqlmap;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import org.junit.Test;
 
 import java.util.List;

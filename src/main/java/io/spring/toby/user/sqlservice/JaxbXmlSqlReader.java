@@ -3,9 +3,9 @@ package io.spring.toby.user.sqlservice;
 import io.spring.toby.user.dao.UserDao;
 import io.spring.toby.user.sqlservice.jaxb.SqlType;
 import io.spring.toby.user.sqlservice.jaxb.Sqlmap;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 import java.io.InputStream;
 

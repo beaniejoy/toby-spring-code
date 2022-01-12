@@ -64,17 +64,20 @@ public class SimpleSqlService implements SqlService {
   - **XML 정보를 오브젝트처럼 다룰 수 있다는 장점 존재**
 #### maven dependency
 ```xml
-<!-- JAXB Java11-->
 <dependency>
-  <groupId>jakarta.xml.bind</groupId>
-  <artifactId>jakarta.xml.bind-api</artifactId>
-  <version>3.0.1</version>
+  <groupId>com.sun.xml.bind</groupId>
+  <artifactId>jaxb-core</artifactId>
+  <version>2.2.11</version>
 </dependency>
 <dependency>
   <groupId>com.sun.xml.bind</groupId>
   <artifactId>jaxb-impl</artifactId>
-  <version>3.0.0-M5</version>
-  <scope>runtime</scope>
+  <version>2.2.11</version>
+</dependency>
+<dependency>
+  <groupId>javax.xml.bind</groupId>
+  <artifactId>jaxb-api</artifactId>
+  <version>2.2.11</version>
 </dependency>
 ```
 #### sqlmap.xsd
@@ -211,3 +214,14 @@ public void setSqlmapFile(String sqlmapFile) {
   - `DefaultSqlService` 생성자에서 일단 디폴트 의존 오브젝트를 다 만들어 버린다.
   - 한 두개면 상관없지만 많은 오브젝트를 쓸데 없이 만들어낸다면 이것 또한 비용
   - `@PostConstruct` 등의 초기화 메소드를 통해 이에 대해 적절히 제한 가능
+
+## 7.3 서비스 추상화 적용
+- JAXB 외에도 다양한 XML - Object 매핑하는 기술이 있음. 필요에 따라 다른 기술로 손쉽게 바꿔 사용할 수 있어야 함(`OCP`)
+- 위에 내용까지는 UserDao 클래스와 같은 클래스 패스 안에서만 XML을 읽어올 수 있음
+  - 임의의 클래스패스, 파일시스템 상절대위치, HTTP 프로토콜 통한 원격에서요가져올 수 있도록 확장이 필요
+- OXM (Object-XML Mapping): XML과 자바 오브젝트를 매핑해서 상호 변환해주는 기술
+- **스프링은 OXM에 대해서도 서비스 추상화 기능을 제공**
+- 
+
+> OxmTest 때 사용되는 sqlmap.xml은 test-classes 디렉토리 내 실행파일과 같은 위치에 있어야 한다.
+
