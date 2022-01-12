@@ -200,3 +200,14 @@ public void setSqlmapFile(String sqlmapFile) {
 }
 ````
 - 대신 `JaxbXmlSqlReader` 코드에 `sqlmap.xml` 경로에 대한 디폴트 설정이 필요하다.
+
+```xml
+<bean id="sqlService" class="io.spring.toby.user.sqlservice.DefaultSqlService">
+  <property name="sqlRegistry" ref="ultraSuperFastSqlRegistry" />
+</bean>
+```
+- 이런 식으로 디폴트 의존 오브젝트 대신 사용하고 싶은 구현 오브젝트가 있으면 따로 프로퍼티로 지정하면 된다.
+- 디폴트 의존 오브젝트의 단점
+  - `DefaultSqlService` 생성자에서 일단 디폴트 의존 오브젝트를 다 만들어 버린다.
+  - 한 두개면 상관없지만 많은 오브젝트를 쓸데 없이 만들어낸다면 이것 또한 비용
+  - `@PostConstruct` 등의 초기화 메소드를 통해 이에 대해 적절히 제한 가능
