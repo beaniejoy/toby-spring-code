@@ -28,7 +28,13 @@
         <property name="sqlService" ref="sqlService"/>
     </bean>
 
-    <bean id="sqlService" class="io.spring.toby.user.sqlservice.DefaultSqlService" />
+    <bean id="sqlService" class="io.spring.toby.user.sqlservice.OxmSqlService">
+        <property name="unmarshaller" ref="unmarshaller" />
+    </bean>
+
+    <bean id="unmarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+        <property name="contextPath" value="io.spring.toby.user.sqlservice.jaxb"/>
+    </bean>
 
     <bean id="userLevelUpgradePolicy" class="io.spring.toby.user.service.UserLevelUpgradePolicyImpl"/>
 

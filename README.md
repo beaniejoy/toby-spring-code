@@ -221,7 +221,67 @@ public void setSqlmapFile(String sqlmapFile) {
   - 임의의 클래스패스, 파일시스템 상절대위치, HTTP 프로토콜 통한 원격에서요가져올 수 있도록 확장이 필요
 - OXM (Object-XML Mapping): XML과 자바 오브젝트를 매핑해서 상호 변환해주는 기술
 - **스프링은 OXM에 대해서도 서비스 추상화 기능을 제공**
-- 
 
 > OxmTest 때 사용되는 sqlmap.xml은 test-classes 디렉토리 내 실행파일과 같은 위치에 있어야 한다.
 
+### OXM 서비스 추상화 적용
+
+> OxmSqlService.java
+
+```java
+import org.springframework.oxm.Unmarshaller; // 주의, oxm의 unmarshaller를 사용하자
+//...
+
+public class OxmSqlService implements SqlService {
+  private final OxmSqlReader oxmSqlReader = new OxmSqlReader();
+
+  public void setUnmarshaller(Unmarshaller unmarshaller) {
+    this.oxmSqlReader.setUnmarshaller(unmarshaller);
+  }
+  public void setSqlmapFile(String sqlmapFile) {
+    this.oxmSqlReader.setSqlmapFile(sqlmapFile);
+  }
+
+  private class OxmSqlReader implements SqlReader {...}
+}
+```
+- `OxmSqlService`와 `OxmSqlReader`이 하나의 클래스 안에 강하게 묶여 있다.
+  - `OxmSqlReader`는 `OxmSqlService`만이 사용할 수 있다.
+- 강하게 묶은 이유는 OXM을 이용하는 서비스 구조로 최적화하기 위함
+- 되도록 클래스를 분리하고 따로 bean 등록해 DI 구조를 만드는 것이 좋지만 `SqlService`를 위해 등록해야되는 빈이 계속 늘어난다는 문제점이 있다.
+- 빈의 개수를 줄이고 설정을 단순하게 하기위해 하나의 빈 설정만으로 `SqlService`, `SqlReader`의 필요한 프로퍼티 설정이 모두 가능하도록 만들 필요가 있음
+- `OxmSqlService`의 공개된 프로퍼티를 통해 DI 받은 것을 그대로 내부 맴버클래스(`OxmSqlReader`)에 전달
+
+```xml
+<bean id="sqlService" class="io.spring.toby.user.sqlservice.OxmSqlService">
+    <property name="unmarshaller" ref="unmarshaller" />
+</bean>
+<bean id="unmarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+    <property name="contextPath" value="io.spring.toby.user.sqlservice.jaxb"/>
+</bean>
+```
+- `test-applicationContext.xml`에 위와 같이 빈을 등록하고 테스트를 돌려보자
+- `sqlmap.xml` 파일을 classes 디렉토리 내부에 `UserDao.class`와 같은 곳에 위치해야 한다.
+
+### 위임을 통한 BaseSqlService 재사용
+- OxmSqlService의 loadSql, getSql 메소드 내용이 BaseSqlService와 중복
+- 해당 내용을 BaseSqlService에 위임하는 코드 작성
+```java
+// BaseSqlService 클래스를 맴버필드로 사용
+private final BaseSqlService baseSqlService = new BaseSqlService();
+
+@PostConstruct
+public void loadSql() {
+    // 각각 BaseSqlService에 할당
+    this.baseSqlService.setSqlReader(this.oxmSqlReader);
+    this.baseSqlService.setSqlRegistry(this.sqlRegistry);
+    // 메소드는 위임
+    this.baseSqlService.loadSql();
+}
+
+@Override
+public String getSql(String key) throws SqlRetrievalFailureException {
+    // 메소드는 위임
+    return this.baseSqlService.getSql(key);
+}
+```
